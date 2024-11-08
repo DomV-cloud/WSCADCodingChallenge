@@ -83,9 +83,18 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Factory\CircleShapeFactory.cs" />
+    <Compile Include="Factory\ShapeFactory.cs" />
+    <Compile Include="Factory\TriangleShapeFactory.cs" />
+    <Compile Include="Interfaces\IFileService.cs" />
+    <Compile Include="Interfaces\IShapeFactory.cs" />
+    <Compile Include="Factory\LineShapeFactory.cs" />
+    <Compile Include="DataParser\ShapeDataParser.cs" />
+    <Compile Include="Services\FileService.cs" />
     <Compile Include="Shapes\CircleShape.cs" />
     <Compile Include="Shapes\LineShape.cs" />
     <Compile Include="Shapes\ShapeData.cs" />
+    <Compile Include="Shapes\ShapesCollection.cs" />
     <Compile Include="Shapes\TriangleShape.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

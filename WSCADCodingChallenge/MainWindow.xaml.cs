@@ -3,42 +3,54 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using WSCADCodingChallenge.Factory;
 using WSCADCodingChallenge.Interfaces;
+using WSCADCodingChallenge.Services;
 using WSCADCodingChallenge.Shapes;
 
 namespace WSCADCodingChallenge
 {
     public partial class MainWindow : Window
     {
-        private List<IShape> shapes;
-        string path = "";
+        private readonly string path = "";
+        private readonly string appDirectory = "";
+
+        private readonly List<IShape> shapes;
+        private readonly Dictionary<string, IShapeFactory> shapeFactories;
+
+        private readonly FileService fileService;
+        private readonly ShapeDataParser parser;
+        private readonly ShapeFactory shapeFactory;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            string appDirectory = AppDomain.CurrentDomain.BaseDirectory; // WSCADCodingChallenge\WSCADCodingChallenge\bin\Debug
-            path = Path.Combine(appDirectory, "Data", "dataCanvas.json");
-
-            shapes = LoadShapesFromJson(path);
-
-            // I know it is junk leave it like that, but I'd like to talk about little bit
-            //DrawShapes();
-        }
-
-        private List<IShape> LoadShapesFromJson(string filePath)
-        {
-            string json = File.ReadAllText(filePath);
-            var shapesData = JsonSerializer.Deserialize<List<ShapeData>>(json);
-            var shapes = new List<IShape>();
-
-            foreach (var shapeData in shapesData)
+            shapeFactories = new Dictionary<string, IShapeFactory>(StringComparer.OrdinalIgnoreCase)
             {
-                IShape shape = shapeData.ToShape();
-                if (shape != null)
-                    shapes.Add(shape);
-            }
-            return shapes;
+                { "line", new LineShapeFactory() },
+                { "circle", new CircleShapeFactory() },
+                { "triangle", new TriangleShapeFactory() }
+            };
+
+            parser = new ShapeDataParser();
+
+            shapeFactory = new ShapeFactory(shapeFactories, parser);
+            fileService = new FileService(shapeFactory);
+
+            appDirectory = AppDomain.CurrentDomain.BaseDirectory; // WSCADCodingChallenge\WSCADCodingChallenge\bin\Debug
+            
+            // I would definetely add configuration file, like appsettings.json
+            // to configure path and if I want to load data from json or xml file
+            //path = Path.Combine(appDirectory, "Data", "dataJson.json");
+            path = Path.Combine(appDirectory, "Data", "dataXml.xml");
+
+            //shapes = LoadShapesFromJson(path);
+            bool useJson = false;
+            shapes = useJson ? fileService.LoadShapesFromJson(path) : fileService.LoadShapesFromXml(path);
+
+            // I know it's junk, but I'd like to talk about little bit so I am leaving it here
+            //DrawShapes();
         }
 
         private void DrawShapes()
@@ -47,6 +59,7 @@ namespace WSCADCodingChallenge
             //MyCanvas.Children.Clear(); // Clear previous shapes
 
             // Calculate bounding box and scale
+            // Reources I've used
             // https://stackoverflow.com/questions/5104525/wpf-how-to-get-the-true-size-bounding-box-of-shapes
             Rect boundingBox = CalculateBoundingBox(shapes);
             double scale = Math.Min(MyCanvas.ActualWidth / boundingBox.Width, MyCanvas.ActualHeight / boundingBox.Height);
